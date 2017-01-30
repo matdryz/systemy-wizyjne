@@ -7,11 +7,8 @@ m = np.array(coefficients).reshape((1,3))
 def localize_plate(path,INTER_CHARACTER_DISTANCE, MINWCHARS,MAXWCHARS, wP, MINHCHAR, MAXHCHAR, hP, a1, a2, a3, a4, a5, debug=False):
     img = cv2.imread(path)
     gray_scale= cv2.transform(img, m)
-    # sobelx = cv2.Sobel(gray_scale,cv2.CV_32F,1,0,ksize=-1)
     sobelx = cv2.Sobel(gray_scale,cv2.CV_8U,1,0,ksize=-1)
     sobelx=cv2.cvtColor(sobelx, cv2.COLOR_GRAY2BGR)
-    # cv2.imwrite('temp.jpg',sobelx)
-    # sobelx=cv2.imread('temp.jpg',)
     if debug:
         cv2.imwrite('steps/sobel.jpg',sobelx)
     mean = cv2.blur(sobelx, (int(a1*wP), int(a1*hP)))
@@ -53,13 +50,8 @@ def localize_plate(path,INTER_CHARACTER_DISTANCE, MINWCHARS,MAXWCHARS, wP, MINHC
         candidates.append(cv2.boundingRect(cnt))
     result=[]
     ind=0
-    # print(len(candidates))
     for candidate in candidates:
-        # print("c:" )
-        # print(candidate)
         candidate_img=asGray[(candidate[1]-candidate_dilation_in_pixels):(candidate[1]+candidate[3]+candidate_dilation_in_pixels),(candidate[0]-candidate_dilation_in_pixels):(candidate[0]+candidate[2]+candidate_dilation_in_pixels)]
-        # print(candidate_img.shape)
-        # candidate_dilation = cv2.morphologyEx(candidate_img, cv2.MORPH_DILATE, cv2.getStructuringElement(cv2.MORPH_RECT,(5, 5)))
         candidate_ret,candidate_binarized = cv2.threshold(candidate_img,0,255,cv2.THRESH_BINARY+cv2.THRESH_OTSU)
         candidate_erosion=cv2.morphologyEx(candidate_binarized, cv2.MORPH_ERODE, cv2.getStructuringElement(cv2.MORPH_RECT,(int(a4*wP), 1)))
         candidate_dilation_2=cv2.morphologyEx(candidate_erosion, cv2.MORPH_DILATE, cv2.getStructuringElement(cv2.MORPH_RECT,(int(a5*wP), int(a5*hP))))
@@ -71,8 +63,6 @@ def localize_plate(path,INTER_CHARACTER_DISTANCE, MINWCHARS,MAXWCHARS, wP, MINHC
             cv2.imwrite("steps/cand_"+str(ind)+".jpg", candidate_img)
             cv2.imwrite("steps/cand"+str(ind)+".jpg", candidate_thresholded)
         contuoursImg, final_contours,hierarchy = cv2.findContours(candidate_thresholded,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE )
-        # print(np.amax(candidate_binarized))
-        # print(cv2.boundingRect(candidate_binarized) )
         
         for cnt in final_contours:
             x,y,w,h=cv2.boundingRect(cnt)
